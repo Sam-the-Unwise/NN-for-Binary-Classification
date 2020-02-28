@@ -1,6 +1,7 @@
 ###############################################################################
 #
 # AUTHOR(S): Samantha Muellner
+#            Josh Kruse
 # DESCRIPTION: program that will implement a stochastic gradient descent algo
 #       for a neural network with one hidden layer
 # VERSION: 1.0.0v
@@ -18,7 +19,7 @@ from sklearn import neighbors, datasets
 import random
 
 # global variables
-MAX_ITERATIONS = 20
+MAX_EPOCHS = 2
 STEP_SIZE = .1
 N_HIDDEN_UNITS = 1
 
@@ -28,37 +29,60 @@ N_HIDDEN_UNITS = 1
 # INPUT ARGS:
 #       X_mat : feature matrix (n_observations x n_features)
 #       y_vec : label vector (n_observations x 1)
-#       max_iterations : scalar int > 1
+#       max_epochs : scalar int > 1
 #       step_size
 #       n_hidden_units : number of hidden units
 #       is_train : logical vector of size n_observations
 #           - TRUE if the observation is the train set
-#           - FALSE for the validatoin set
+#           - FALSE for the validation set
 # Return: list/dictionary containing at least three elements named:
 #           - v_mat : best weight matrix (n_features x n_hidden_units) used to
 #                          predict hidden units given inputs
 #           - w_vec : best weight vector (n_hidden_units) used to predict output
 #                          given hidden units
-#           - loss_values : a martix/data_table/etc which stores the logistic 
+#           - loss_values : a matrix/data_table/etc which stores the logistic
 #                          loss with respect to the train/validation set for each
 #                          iteration
-def NNetOneSplit(X_mat, y_vec, max_iterations, step_size, n_hidden_units, is_train):
+def NNetOneSplit(X_mat, y_vec, max_epochs, step_size, n_hidden_units, is_train):
+    n_features = X_mat.shape[0]
+
     # initialize v_mat and w_vec to some random number close to zero
-    v_mat = np.array([])
-    w_vec = np.array([])
+    v_mat = np.random.randn( n_features, n_hidden_units)
+    w_vec = np.random.randn(n_hidden_units)
+    #print(v_mat)
+    #print(w_vec)
+
     loss_values = np.array([])
 
     #   for is_train, randomly assign 60% train and 40% validation
-    X_train, X_validation, y_train, y_validation = split_matrix(X_sc, y_vec)
+    X_train, X_validation, y_train, y_validation = split_matrix(X_mat, y_vec)
+
+    X_train_i = X_train[0]
+
+    index=0
+    print( sigmoid( v_mat[ index ] * X_train[ index ] ) )
+
+    #v_mat = v_mat - step_size * gradient
 
     # during each iteration compute the gradients of v_mat and w_vec
     #       by taking a step (scaled by step_size) in the neg. gradient direction-
-    for num in range(1, max_iterations):
-        i = 0 # stand in variables please delete
+    for epoch in range(max_epochs):
+        observations = X_train.shape[0]
+        print(observations)
+        for index in range( (X_train.shape[0]) -1 ) :
+            h_v = sigmoid( np.transpose(v_mat[ index ]) * X_train[ index ] )
+            v_mat = v_mat - step_size * ( v_mat[ index ] * ( h_v * ( 1 - h_v ) ) * X_train[ index ] )
+            print( w_vec[index].shape )
+            h_w = sigmoid( np.dot( np.transpose(w_vec[ index ]), X_train[ index ] ) )
+            w_vec = w_vec - step_size * ( w_vec[ index ] * ( h_w * ( 1 - h_w ) ) * X_train[ index ] )
+
+            #print(v_mat)
+
+            #h_w = sigmoid( np.transpose(v_mat[0]) * X_train_i )
+            #w_vec = w_vec - step_size
 
         # at each iteration compute the log. loss on the train/validation sets
         #       store in loss_values
-        
 
     
     return v_mat, w_vec, loss_values
@@ -87,9 +111,17 @@ def convert_data_to_matrix(file_name):
     data_matrix_full = np.array(spam_file[0:], dtype=np.float)
     return data_matrix_full
 
+# Function: sigmoid
+# INPUT ARGS:
+#   x : value to be sigmoidified
+# Return: sigmoidified x
+def sigmoid(x) :
+    x = 1 / (1 + np.exp(-x))
+    return x
 
 # Function: main
 def main():
+    print("starting")
     # use spam data set
     data_matrix_full = convert_data_to_matrix("spam.data")
     np.random.shuffle(data_matrix_full)
@@ -104,14 +136,14 @@ def main():
     X_sc = scale(X_Mat)
 
     # logical vector of size n_observations
-    # TRUE if the observation is in thet train set
+    # TRUE if the observation is in then train set
     # FALSE for the validation set
     is_train = np.array([])
     
 
 
     # use NNetOneSplit with whole dataset for X_mat/y_vec
-    NNetOneSplit(X_sc, y_vec, MAX_ITERATIONS, STEP_SIZE, N_HIDDEN_UNITS, is_train)
+    NNetOneSplit(X_sc, y_vec, MAX_EPOCHS, STEP_SIZE, N_HIDDEN_UNITS, is_train)
 
 
     ########### TO DO #############
@@ -145,3 +177,5 @@ def main():
     
 
     return 0
+
+main()
