@@ -16,12 +16,13 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import scale
 from sklearn.metrics import zero_one_loss
 from sklearn import neighbors, datasets
+from matplotlib import pyplot as plt
 import random
 
 # global variables
-MAX_EPOCHS = 2
-STEP_SIZE = .1
-N_HIDDEN_UNITS = 20
+MAX_EPOCHS = 50
+STEP_SIZE = .01
+N_HIDDEN_UNITS = 50
 
 
 
@@ -55,7 +56,8 @@ def NNetOneSplit(X_mat, y_vec, max_epochs, step_size, n_hidden_units, is_train):
 
     print(v_mat.shape[1])
 
-    loss_values = np.array([])
+    loss_train = []
+    loss_val = []
 
     #   for is_train, randomly assign 60% train and 40% validation
     X_train, X_validation, y_train, y_validation = split_matrix(X_mat, y_vec)
@@ -70,45 +72,41 @@ def NNetOneSplit(X_mat, y_vec, max_epochs, step_size, n_hidden_units, is_train):
     # during each iteration compute the gradients of v_mat and w_vec
     #       by taking a step (scaled by step_size) in the neg. gradient direction-
     for epoch in range(max_epochs):
-        observations = X_train.shape[0]
-        #print(observations)
         for index in range( (X_train.shape[0]) -1 ) :
+            if y_train[ index ] == 0 : y_tild = -1
+            else : y_tild = 1
+
             h_v = sigmoid( np.transpose( v_mat ) @ X_train[ index ] )
-            #print( "theta", v_mat.shape )
-            print( "x", X_train[index].shape )
-            #print( "h", h_v.shape)
 
-            print((v_mat @ ( h_v * ( 1 - h_v ) )).shape)
-            gradient = (v_mat @ ( h_v * ( 1 - h_v ) )) * X_train[ index ]
-            print("g", dgradient.shape)
+            first_term = (1 / (1 + np.exp(-y_tild * (h_v))))
+            second_term = (np.exp(-y_tild * (h_v)))
+            third_term = (-y_tild * (np.transpose(v_mat * (h_v * (1 - h_v))) @ X_train[index]))
+            gradient = (first_term * second_term * third_term)
             v_mat = v_mat - step_size * gradient
-            #print( v_mat.shape )
 
-            y_hat = sigmoid( np.transpose(w_vec) @ h_v )
-            #print( "theta", w_vec.shape )
-            #print( "h", h_v.shape )
-            #print( "y_hat", y_hat.shape )
+            y_hat = sigmoid( w_vec @ h_v ) # TODO: this shouldn't be this way :0
 
-            #print("Y", y_hat.shape)
-            gradient = w_vec * ( y_hat * ( 1 - y_hat ) ) * h_v[ 0 ]
-            #print(gradient.shape)
-            #w_vec = w_vec - step_size * ( w_vec * ( h_w * ( 1 - h_w ) ) * h_w )
-
-            #print(w_vec)
-
-            #h_w = sigmoid( np.transpose(v_mat[0]) * X_train_i )
-            #w_vec = w_vec - step_size
+            first_term = (1 / (1 + np.exp(-y_tild * (y_hat))))
+            second_term = (np.exp(-y_tild * (y_hat)))
+            third_term = (-y_tild * (np.transpose(w_vec * (y_hat * (1 - y_hat))) @ h_v))
+            gradient = (first_term * second_term * third_term)
+            w_vec = w_vec - step_size * gradient
 
         # at each iteration compute the log. loss on the train/validation sets
         #       store in loss_values
-        #print(v_mat.shape[1])
-        #y_pred = ( X_train * v_mat )
-        #y_pred = (np.around(sigmoid( y_pred * w_vec ))).astype(int)
-        #int(np.mean(X_train != y_pred) * 100)
-        #print(y_pred)
-        #print( np.mean( y_train != y_pred ) )
+        y_train_pred = np.around(sigmoid( ( X_train @ v_mat ) @ w_vec ))
+        #print("hi", np.mean( y_train != y_train_pred ))
+        loss_train.append( np.mean( y_train != y_train_pred ) )
 
-    
+        y_val_pred = np.around(sigmoid((X_validation @ v_mat) @ w_vec))
+        #print("bye", np.mean( y_validation != y_val_pred))
+        loss_val.append( np.mean( y_validation != y_val_pred) )
+
+    loss_values = [[],[]]
+    loss_values[0].append(loss_train)
+    loss_values[1].append(loss_val)
+    #print(loss_values)
+
     return v_mat, w_vec, loss_values
 
 # Function: split matrix
@@ -167,9 +165,11 @@ def main():
 
 
     # use NNetOneSplit with whole dataset for X_mat/y_vec
-    NNetOneSplit(X_sc, y_vec, MAX_EPOCHS, STEP_SIZE, N_HIDDEN_UNITS, is_train)
-
-
+    y_mat, w_vec, loss_values = NNetOneSplit(X_sc, y_vec, MAX_EPOCHS, STEP_SIZE, N_HIDDEN_UNITS, is_train)
+    print(loss_values[0])
+    plt.plot( loss_values[0][0], "-g" )
+    plt.plot( loss_values[1][0], "-r")
+    plt.show()
     ########### TO DO #############
     # plot the train/validation loss as a function of the number of iterations
     #   and draw a point to emphasize the minimu0m of each curve
