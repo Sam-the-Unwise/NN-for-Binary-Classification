@@ -84,7 +84,7 @@ def NNetOneSplit(X_mat, y_vec, max_epochs, step_size, n_hidden_units, is_train):
             gradient = (first_term * second_term * third_term)
             v_mat = v_mat - step_size * gradient
 
-            y_hat = sigmoid( w_vec @ h_v ) # TODO: this shouldn't be this way :0
+            y_hat = sigmoid(w_vec @ h_v) # TODO: this shouldn't be this way :0
 
             first_term = (1 / (1 + np.exp(-y_tild * (y_hat))))
             second_term = (np.exp(-y_tild * (y_hat)))
@@ -167,8 +167,13 @@ def main():
     # use NNetOneSplit with whole dataset for X_mat/y_vec
     y_mat, w_vec, loss_values = NNetOneSplit(X_sc, y_vec, MAX_EPOCHS, STEP_SIZE, N_HIDDEN_UNITS, is_train)
     print(loss_values[0])
-    plt.plot( loss_values[0][0], "-g" )
-    plt.plot( loss_values[1][0], "-r")
+    plt.plot( loss_values[0][0], "-g", label="Train" )
+    min_index = np.argmin( loss_values[0][0] )
+    plt.plot( min_index, loss_values[0][0][min_index], "go")
+    plt.plot( loss_values[1][0], "-r", label="Validation" )
+    min_index = np.argmin( loss_values[1][0] )
+    plt.plot( min_index, loss_values[1][0][min_index], "ro")
+    plt.legend()
     plt.show()
     ########### TO DO #############
     # plot the train/validation loss as a function of the number of iterations
