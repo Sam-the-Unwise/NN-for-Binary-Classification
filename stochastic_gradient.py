@@ -21,7 +21,7 @@ import random
 # global variables
 MAX_EPOCHS = 2
 STEP_SIZE = .1
-N_HIDDEN_UNITS = 1
+N_HIDDEN_UNITS = 20
 
 
 
@@ -44,13 +44,16 @@ N_HIDDEN_UNITS = 1
 #                          loss with respect to the train/validation set for each
 #                          iteration
 def NNetOneSplit(X_mat, y_vec, max_epochs, step_size, n_hidden_units, is_train):
-    n_features = X_mat.shape[0]
+    n_features = X_mat.shape[1]
+    #print(n_features)
 
     # initialize v_mat and w_vec to some random number close to zero
     v_mat = np.random.randn( n_features, n_hidden_units)
-    w_vec = np.random.randn(n_hidden_units)
+    w_vec = np.random.randn( n_hidden_units )
     #print(v_mat)
     #print(w_vec)
+
+    print(v_mat.shape[1])
 
     loss_values = np.array([])
 
@@ -60,7 +63,7 @@ def NNetOneSplit(X_mat, y_vec, max_epochs, step_size, n_hidden_units, is_train):
     X_train_i = X_train[0]
 
     index=0
-    print( sigmoid( v_mat[ index ] * X_train[ index ] ) )
+    #print( sigmoid( v_mat[ index ] * X_train[ index ] ) )
 
     #v_mat = v_mat - step_size * gradient
 
@@ -68,21 +71,42 @@ def NNetOneSplit(X_mat, y_vec, max_epochs, step_size, n_hidden_units, is_train):
     #       by taking a step (scaled by step_size) in the neg. gradient direction-
     for epoch in range(max_epochs):
         observations = X_train.shape[0]
-        print(observations)
+        #print(observations)
         for index in range( (X_train.shape[0]) -1 ) :
-            h_v = sigmoid( np.transpose(v_mat[ index ]) * X_train[ index ] )
-            v_mat = v_mat - step_size * ( v_mat[ index ] * ( h_v * ( 1 - h_v ) ) * X_train[ index ] )
-            print( w_vec[index].shape )
-            h_w = sigmoid( np.dot( np.transpose(w_vec[ index ]), X_train[ index ] ) )
-            w_vec = w_vec - step_size * ( w_vec[ index ] * ( h_w * ( 1 - h_w ) ) * X_train[ index ] )
+            h_v = sigmoid( np.transpose( v_mat ) @ X_train[ index ] )
+            #print( "theta", v_mat.shape )
+            print( "x", X_train[index].shape )
+            #print( "h", h_v.shape)
 
-            #print(v_mat)
+            print((v_mat @ ( h_v * ( 1 - h_v ) )).shape)
+            gradient = (v_mat @ ( h_v * ( 1 - h_v ) )) * X_train[ index ]
+            print("g", dgradient.shape)
+            v_mat = v_mat - step_size * gradient
+            #print( v_mat.shape )
+
+            y_hat = sigmoid( np.transpose(w_vec) @ h_v )
+            #print( "theta", w_vec.shape )
+            #print( "h", h_v.shape )
+            #print( "y_hat", y_hat.shape )
+
+            #print("Y", y_hat.shape)
+            gradient = w_vec * ( y_hat * ( 1 - y_hat ) ) * h_v[ 0 ]
+            #print(gradient.shape)
+            #w_vec = w_vec - step_size * ( w_vec * ( h_w * ( 1 - h_w ) ) * h_w )
+
+            #print(w_vec)
 
             #h_w = sigmoid( np.transpose(v_mat[0]) * X_train_i )
             #w_vec = w_vec - step_size
 
         # at each iteration compute the log. loss on the train/validation sets
         #       store in loss_values
+        #print(v_mat.shape[1])
+        #y_pred = ( X_train * v_mat )
+        #y_pred = (np.around(sigmoid( y_pred * w_vec ))).astype(int)
+        #int(np.mean(X_train != y_pred) * 100)
+        #print(y_pred)
+        #print( np.mean( y_train != y_pred ) )
 
     
     return v_mat, w_vec, loss_values
