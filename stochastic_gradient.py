@@ -54,14 +54,14 @@ def NNetOneSplit(X_mat, y_vec, max_iterations, step_size, n_hidden_units, is_tra
     # during each iteration compute the gradients of v_mat and w_vec
     #       by taking a step (scaled by step_size) in the neg. gradient direction-
     for num in range(1, max_iterations):
-        i = 0 # stand in variables please delete
+        i = 0 # stand in variables please delete 0.0
 
         # at each iteration compute the log. loss on the train/validation sets
         #       store in loss_values
-        
 
     
     return v_mat, w_vec, loss_values
+
 
 # Function: split matrix
 # INPUT ARGS:
