@@ -105,13 +105,13 @@ def NNOneSplit(X_mat, y_vec, max_epochs, step_size, n_hidden_units, is_train):
 
         # at each iteration compute the log. loss on the train/validation sets
         #       store in loss_values
-        y_train_pred = np.around(sigmoid_2(sigmoid_2(X_train @ v_mat) @ w_vec ))
+        y_train_pred = np.around(sigmoid(sigmoid(X_train @ v_mat) @ w_vec ))
         #print(y_train_pred)
         #print("hi", np.mean( y_train != y_train_pred ))
         #loss_train.append( np.mean( y_train != y_train_pred ) )
         loss_train.append( log_loss( y_train, y_train_pred ))
 
-        y_val_pred = np.around(sigmoid_2(sigmoid_2(X_validation @ v_mat) @ w_vec))
+        y_val_pred = np.around(sigmoid(sigmoid(X_validation @ v_mat) @ w_vec))
         #print(y_val_pred)
         #print("bye", np.mean( y_validation != y_val_pred))
         #loss_val.append( np.mean( y_validation != y_val_pred) )
@@ -156,10 +156,6 @@ def sigmoid(x) :
     x = 1 / (1 + np.exp(-x))
     return x
 
-
-def sigmoid_2(x) :
-    x = 1 / (1 + np.exp(-x))
-    return x
 
 # Function: main
 def main():
@@ -238,7 +234,7 @@ def main():
     X_test = np.delete( X_sc, np.argwhere(is_train==False), 0)
     y_test = np.delete(y_vec, np.argwhere(is_train == False), 0)
 
-    test_pred = np.around(sigmoid_2(sigmoid_2( X_test @ v_mat ) @ w_vec))
+    test_pred = np.around(sigmoid(sigmoid( X_test @ v_mat ) @ w_vec))
     print("Prediction accuracy (correctly labeled) :", np.mean( test_pred == y_test ))
     baseline = np.zeros(y_test.shape)
     print("Baseline prediction accuracy :", np.mean( baseline == y_test ))

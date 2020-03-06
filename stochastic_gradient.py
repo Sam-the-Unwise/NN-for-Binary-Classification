@@ -7,6 +7,18 @@
 #
 ###############################################################################
 
+import numpy as np
+import csv, math
+from math import sqrt
+from sklearn.neighbors import NearestNeighbors as NN
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import scale
+from sklearn.metrics import zero_one_loss
+from sklearn.metrics import log_loss
+from sklearn import neighbors, datasets
+from matplotlib import pyplot as plt
+import random
+
 
 # Function: NNOneSplit
 # INPUT ARGS:
@@ -44,7 +56,7 @@ def NNOneSplit(X_mat, y_vec, max_epochs, step_size, n_hidden_units, is_train):
 
     #   for is_train, randomly assign 60% train and 40% validation
     #X_train, X_validation, y_train, y_validation = split_matrix(X_mat, y_vec, .6)
-    X_train = np.delete( X_mat, np.argwhere(is_train==True), 0)
+    X_train = np.delete(X_mat, np.argwhere(is_train==True), 0)
     y_train = np.delete(y_vec, np.argwhere(is_train == True), 0)
     X_validation = np.delete(X_mat, np.argwhere(is_train == False), 0)
     y_validation = np.delete(y_vec, np.argwhere(is_train == False), 0)
@@ -53,7 +65,7 @@ def NNOneSplit(X_mat, y_vec, max_epochs, step_size, n_hidden_units, is_train):
 
     X_train_i = X_train[0]
 
-    index=0
+    index = 0
     #print( sigmoid( v_mat[ index ] * X_train[ index ] ) )
 
     #v_mat = v_mat - step_size * gradient
@@ -86,13 +98,13 @@ def NNOneSplit(X_mat, y_vec, max_epochs, step_size, n_hidden_units, is_train):
 
         # at each iteration compute the log. loss on the train/validation sets
         #       store in loss_values
-        y_train_pred = np.around(sigmoid_2(sigmoid_2(X_train @ v_mat) @ w_vec ))
+        y_train_pred = np.around(sigmoid(sigmoid(X_train @ v_mat) @ w_vec ))
         #print(y_train_pred)
         #print("hi", np.mean( y_train != y_train_pred ))
         #loss_train.append( np.mean( y_train != y_train_pred ) )
         loss_train.append( log_loss( y_train, y_train_pred ))
 
-        y_val_pred = np.around(sigmoid_2(sigmoid_2(X_validation @ v_mat) @ w_vec))
+        y_val_pred = np.around(sigmoid(sigmoid(X_validation @ v_mat) @ w_vec))
         #print(y_val_pred)
         #print("bye", np.mean( y_validation != y_val_pred))
         #loss_val.append( np.mean( y_validation != y_val_pred) )
@@ -104,3 +116,12 @@ def NNOneSplit(X_mat, y_vec, max_epochs, step_size, n_hidden_units, is_train):
     #print(loss_values)
 
     return v_mat, w_vec, loss_values
+
+
+# Function: sigmoid
+# INPUT ARGS:
+#   x : value to be sigmoidified
+# Return: sigmoidified x
+def sigmoid(x) :
+    x = 1 / (1 + np.exp(-x))
+    return x
