@@ -1,120 +1,63 @@
-###############################################################################
-#
-# AUTHOR(S): Samantha Muellner
-#            Josh Holguin
-#            Jacob Christiansen
-# DESCRIPTION: Gradient Descent Function
-# VERSION: 1.0.0v
-#
-# Link to original function: 
-# https://github.com/Sam-the-Unwise/Gradient-Descent/blob/master/gradientDescent.py
-###############################################################################
-
+import operator
 import numpy as np
-import csv
-from math import sqrt
+import sklearn.metrics
+from matplotlib import pyplot
+from sklearn.preprocessing import scale
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_curve
 
-# Function: gradientDescent
-# INPUT ARGS:
-#   X : a matrix of numeric inputs {Obervations x Feature}
-#   y : a vector of binary outputs {0,1}
-#   stepSize : learning rate - epsilon parameters
-#   max_iterations : # Function: calculate_gradient
-# INPUT ARGS:
-#   matrix : input matrix row with obs and features
-#   y_tild : modified y val to calc gradient
-#   step_size : step fir gradient
-#
-# Return: [none]
-def calculate_gradient(x_row, y_tild, step_size, weight_vector_transpose):
-    # calculate elements of the denominator
-    verctor_mult = np.multiply(weight_vector_transpose, x_row)
-    inner_exp = np.multiply(y_tild, verctor_mult)
-    denom = 1 + np.exp(inner_exp)
+# function: calc_gradient
+# calculates the gradient for a specific weightVector
+# returns: the mean of the gradients as a vector
+def calc_gradient(weightVector, y_tild, X) :
+    size = y_tild.shape[0]
 
-    numerator = np.multiply(x_row, y_tild)
+    sum = 0
+    for index in range(size) :
+        sum += (-y_tild[index] * X[index]) / (1 + np.exp(y_tild[index] * weightVector.T * X[index]))
+    mean = sum / size
 
-    # calculate gradient
-    gradient = numerator/denom
+    return mean
 
-    return gradient
+# function: gradient_descent
+# calculates the gradient descent for a given X matrix with corresponding y vector
+def gradient_descent( X, y, stepSize, maxIterations) :
 
+    # declare weightVector which is initialized to the zero vector
+    #   one element for each feature
+    dimension = X.shape
+    features = dimension[1]
+    weightVector = np.zeros(features)
 
+    # declare weightMatrix of real number
+    #   number of rows = features, number of cols = maxIterations
+    num_of_entries = features * maxIterations
+    weightMatrix = np.array(np.zeros(num_of_entries).reshape(features, maxIterations))
 
-# Function: gradientDescent
-# INPUT ARGS:
-#   X : a matrix of numeric inputs {Obervations x Feature}
-#   y : a vector of binary outputs {0,1}
-#   stepSize : learning rate - epsilon parameters
-#   max_iterations : pos int that controls how many steps to take
-# Return: weight_matrix
-def gradientDescent(X, y, step_size, max_iterations):
-    # tuple of array dim (row, col)
-    arr_dim = X.shape
+    size = y.shape[0]
+    y_tild = np.empty(size)
+    for index in range(size):
+        if (y[index] == 0): y_tild[index] = -1
+        else : y_tild[index] = 1
 
-    # num of input features
-    X_arr_col = arr_dim[1]
+    for index in range(maxIterations) :
+        # first compute the gradient given the current weightVector
+        #   make sure that the gradient is of the mean logistic loss over all training data
+        #print(weightVector)
+        gradient = calc_gradient(weightVector, y_tild, X)
 
-    wm_total_entries = X_arr_col * max_iterations
+        mean_grad_log_loss = gradient / X.shape[1]
+        # then update weightVector by taking a step in the negative gradient direction
+        weightVector = weightVector - stepSize * gradient
 
-    # variable that initiates to the weight vector
-    weight_vector = np.zeros(X_arr_col)
+        weightMatrix[:, index] = weightVector[:]
+        # then store the resulting weightVector in the corresponding column of weightMatrix
+        #for row in range(features) :
+        #    weightMatrix[row][index] = weightVector[row]
 
-    # matrix for real numbers
-    #   row of #s = num of inputs
-    #   num of cols = maxIterations
-    # weight_matrix = np.array(np
-    #                     .zeros(wm_total_entries)
-    #                     .reshape(X_arr_col, max_iterations))
+    return weightMatrix
 
-    array_of_zeros = []
-
-    for i in range(X_arr_col):
-        array_of_zeros.append(0)
-
-    weight_matrix = np.array(array_of_zeros)
-
-    # ALGORITHM
-    weight_vector_transpose = np.transpose(weight_vector)
-
-    for iteration in range(0, max_iterations):
-
-        grad_log_losss = 0
-
-        for index in range(0, X.shape[1]):
-            #calculate y_tid
-            y_tild = -1
-
-            if(y[index] == 1):
-                y_tild = 1
-
-
-            grad_log_losss = 0
-            verctor_mult = 0
-            inner_exp = 0
-
-            # variables for simplification
-            gradient = calculate_gradient(X[index,:], 
-                                            y_tild, 
-                                            step_size, 
-                                            weight_vector_transpose)
-
-            grad_log_losss += gradient
-
-
-        mean_grad_log_loss = grad_log_losss/X.shape[1]
-
-        # update weight_vector depending on positive or negative
-        weight_vector -= np.multiply(step_size, mean_grad_log_loss)
-
-        # store the resulting weight_vector in the corresponding 
-        #   column weight_matrix
-        weight_matrix = np.vstack((weight_matrix, np.array(weight_vector)))
-
-    # get rid of initial zeros matrix that was added
-    weight_matrix = np.delete(weight_matrix, 0, 0)
-
-    weight_matrix = np.transpose(weight_matrix)
-
-    # end of algorithm
-    return weight_matrix
+# function sigmoid
+def sigmoid(x) :
+    x = 1 / (1 + np.exp(-x))
+    return x
