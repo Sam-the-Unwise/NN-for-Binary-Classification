@@ -204,6 +204,8 @@ def main():
     plt.plot(loss_values[1][0], "-r", label="Validation")
     min_index = np.argmin(loss_values[1][0])
     plt.plot(min_index, loss_values[1][0][min_index], "ro")
+    plt.xlabel('epoch')
+    plt.ylabel('error rate') 
 
     plt.xlim(0)
     plt.legend()
@@ -224,6 +226,11 @@ def main():
     plt.plot(loss_values[1][0], "-r", label="Validation")
     min_index = np.argmin(loss_values[1][0])
     plt.plot(min_index, loss_values[1][0][min_index], "ro")
+
+    plt.xlabel('epoch')
+    plt.ylabel('error rate') 
+
+    
     plt.xlim(0)
     plt.legend()
     plt.show()
